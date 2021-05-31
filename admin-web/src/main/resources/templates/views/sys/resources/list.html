@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>菜单列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <div id="tableReloadContainer" class="layui-form">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">资源名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="name" id="name" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+
+                        <div class="layui-inline">
+                            <label class="layui-form-label">路径名称</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="url" id="url" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+
+                        <div class="layui-inline">
+                            <label class="layui-form-label required">资源分类:</label>
+                            <div class="layui-input-block">
+                                <select lay-filter= "categoryId" lay-verify="required" name="categoryId" id="categoryId">
+                                    <option value="">---选择资源分类---</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="layui-inline">
+                            <!--<button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>-->
+                            <button class="layui-btn" data-type="reload">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarContainer">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <button class="layui-btn layui-btn-sm" lay-event="listCategory"> 资源分类列表 </button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script type="text/javascript" th:inline="none">
+    layui.use(['form', 'table', 'util', 'miniTab'], function () {
+        var $ = layui.jquery,
+            miniTab = layui.miniTab,
+            util = layui.util,
+            form = layui.form,
+            table = layui.table;
+        table.render({
+            elem: '#currentTableId',
+            url: '/resource/list',
+            toolbar: '#toolbarContainer',
+            /*不开启右侧工具*/
+            defaultToolbar: false,
+            /*defaultToolbar: ['listCategory', {
+                title: '资源分类列表' //标题
+                ,layEvent: 'listCategory' //事件名，用于 toolbar 事件中使用
+                ,icon: 'layui-icon-tips' //图标类名
+            }],*/
+            // 自定义返回数据格式
+            response: {
+                statusName: 'status' //规定数据状态的字段名称，默认：code
+                ,statusCode: 'success' //规定成功的状态码，默认：0
+                ,countName: 'total' //规定数据总数的字段名称，默认：count
+            /*,msgName: 'hint' //规定状态信息的字段名称，默认：msg
+            ,dataName: 'rows' //规定数据列表的字段名称，默认：data*/
+            },
+            cols: [[
+                // {type: "checkbox", width: 50},
+                {field: 'id', width: 80, title: 'ID', sort: true},
+                {field: 'name', width: 150, title: '资源名称'},
+                {field: 'url', width: 150, title: '资源路径'},
+                {field: 'description', width: 150, title: '描述信息'},
+                {field: 'createTime', width: 190, title: '创建时间', minWidth: 150, templet: dateForMat},
+                {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 10,
+            page: true,
+            request: {
+            pageName: 'pageNum', //页码的参数名称，默认：page
+            limitName: 'pageSize' //每页数据量的参数名，默认：limit
+            }
+            // skin: 'line'
+        });
+        function dateForMat(row){
+            return util.toDateString(row.createTime,'yyyy-MM-dd HH:mm:ss');
+        }
+        // 搜索点击事件监听
+        $('#tableReloadContainer .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        // 表格数据重载
+        var active = {
+            reload: function(){
+                // 关键字
+                var name = $('#name');
+                var url = $('#url');
+                var categoryId = $('#categoryId');
+                //执行重载
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    ,where: {
+                        name: name.val(),
+                        url: url.val(),
+                        categoryId: categoryId.val(),
+                    }
+                }, 'data');
+            }
+        };
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                var index = layer.open({
+                    title: '添加菜单',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '/resource/addView',
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'listCategory') {
+                miniTab.openNewTabByIframe({
+                    href:"/resourceCategory/listView",
+                    title:"资源分类列表",
+                });
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+                var index = layer.open({
+                    title: '编辑资源',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '/resource/editView/' + obj.data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {
+                console.log(obj);
+                layer.confirm('确认删除？', function (index) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/resource/delete/" + obj.data.id,
+                        contentType: "application/x-www-form-urlencoded",
+                        dataType: "JSON",
+                        success: function (data) {
+                            if (data.status == "success"){
+                                layer.msg("删除成功");
+                                obj.del();
+                                layer.close(index);
+                            }else {
+                                layer.msg("删除失败,原因为" + data.data.errMsg);
+                            }
+                        }
+
+                    });
+                });
+            } else if (obj.event === 'showSunList') {
+                var index = layer.open({
+                    title: '下级菜单',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '/menu/listView/?parentId=' + obj.data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            }
+        });
+
+        // 查询所有分类
+        $.ajax({
+            url: "/resourceCategory/listAll",
+            type: 'get',
+            contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+            success:function(res){
+                var data = res.data;
+                console.log(data);
+                if(res.status == "success"){
+                    var optionData = "";
+                    for(var i = 0;i < data.length; i++){
+                        optionData += "<option value=\"" + data[i].id+"\">" + data[i].name+"</option>";
+                    }
+                    $("#categoryId").append(optionData);
+                    form.render('select');//select是固定写法 不是选择器
+                }else{
+                    layer.msg(res.message);
+                }
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>

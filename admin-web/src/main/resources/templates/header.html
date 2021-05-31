@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="common_header(title,links)">
+    <meta charset="UTF-8">
+<!--    <title th:replace="${title}">header</title>-->
+    <title th:replace="${title}">header</title>
+    <!--<link rel="stylesheet" href="/layui-v2.5.7/layui/css/layui.css" >-->
+    <link rel="stylesheet" th:href="@{/layuimini/lib/layui-v2.5.5/css/layui.css}" media="all">
+    <link rel="stylesheet" th:href="@{/layuimini/css/public.css}" media="all">
+    <link rel="stylesheet" th:href="@{/layuimini/js/lay-module/step-lay/step.css}" media="all">
+    <!--不加这一句会导致link直接把插入片段部分原先的给替换掉了-->
+    <th:block th:replace="${links}" />
+</head>
+</html>

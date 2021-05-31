@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:insert="header :: common_header(~{::title},~{::link})">
+    <meta charset="UTF-8">
+    <title th:title="后台管理-登陆"></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <link rel="stylesheet" th:href="@{/css/admin-web/login.css}" media="all">
+</head>
+<body>
+<div class="layui-container">
+    <div class="admin-login-background">
+        <div class="layui-form login-form">
+            <form class="layui-form" action="">
+                <div class="layui-form-item logo-title">
+                    <h1>点评搜索头条</h1>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-icon layui-icon-username"></label>
+                    <input type="text" name="username"  placeholder="用户名" autocomplete="off" class="layui-input" >
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-icon layui-icon-password"></label>
+                    <input type="password" name="password"  placeholder="密码" autocomplete="off" class="layui-input" >
+                </div>
+                <div class="layui-form-item">
+                    <button class="layui-btn layui-btn layui-btn-normal layui-btn-fluid" lay-submit="" lay-filter="login">登 录</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+
+<script src="/layuimini/lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
+<script src="/layuimini/lib/jq-module/jquery.particleground.min.js" charset="utf-8"></script>
+<script>
+    layui.use(['form'], function () {
+        var form = layui.form,
+            layer = layui.layer;
+
+        // 登录过期的时候，跳出ifram框架
+        if (top.location != self.location) top.location = self.location;
+
+        // 粒子线条背景
+        $(document).ready(function(){
+            $('.layui-container').particleground({
+                dotColor:'#7ec7fd',
+                lineColor:'#7ec7fd'
+            });
+        });
+
+        // 进行登录操作
+        form.on('submit(login)', function (data) {
+            data = data.field;
+            if (data.username == '') {
+                layer.msg('用户名不能为空');
+                return false;
+            }
+            if (data.password == '') {
+                layer.msg('密码不能为空');
+                return false;
+            }
+            $.ajax({
+                type: "POST",
+                url: "/admin/login",
+                dataType:'json',
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "username": data.username,
+                    "password": data.password
+                }),
+                success: function (data) {
+                    console.log(data)
+                    if (data.status == "success"){
+                        layer.msg('登录成功', function () {
+                            parent.location.href = "/admin/index";
+                        });
+                        // ('Authorization', data.data.tokenHead + data.data.token);
+                        // $.cookie('headers', data.data.tokenHead + data.data.token, { expires: 7 ,path: '/'  })
+                    }else {
+                        layer.msg(data.data.errMsg);
+                    }
+                },
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

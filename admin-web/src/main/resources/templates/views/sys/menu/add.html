@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>添加菜单</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        #stepForm{
+            // 设置容器宽度
+            width: '100%',
+            stepWidth: '750px',
+            height: '500px',
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+
+                        <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                            <div class="layui-form layuimini-form">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">菜单名称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="title" lay-verify="required" lay-reqtext="菜单名称不能为空" placeholder="请填写菜单名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">菜单级别:</label>
+                                    <div class="layui-input-block">
+                                        <select lay-filter="level" lay-verify="required" name="level">
+                                            <option value="0" selected>顶级</option>
+                                            <option value="1">一级</option>
+                                            <option value="2">二级</option>
+                                            <option value="3">三级</option>
+                                            <option value="4">四级</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item" id="parentIdContainer" style="display: none">
+                                    <label class="layui-form-label required">上级菜单:</label>
+                                    <div class="layui-input-block">
+                                        <select lay-filter= "parentId" lay-verify="required" name="parentId" id="parentId">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">前端名称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="name" placeholder="请填写前端名称" lay-verify="required" lay-reqtext="前端名称不能为空" value="" class="layui-input">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">前端图标:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="icon" placeholder="请填写前端图标" value="fa " class="layui-input">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script>
+    layui.use([ 'form', 'miniTab'], function () {
+        var $ = layui.$,
+            form = layui.form,
+            miniTab = layui.miniTab;
+
+        // 监听菜单级别
+        form.on('select(level)', function(data){
+            console.log(data);
+            if(data.value == 0){
+                // 顶级菜单则无上级菜单
+                $("#parentIdContainer").hide();
+                form.render('select');
+            }else{
+                // 清除原先的节点否则会出现下拉框有重复数据
+                document.getElementById("parentId").options.length = 0;
+                getMenu(data.value);
+                $("#parentIdContainer").show();
+            }
+        });
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            console.log(JSON.stringify(data.field));
+            $.ajax({
+                type: "POST",
+                url: "/menu/create",
+                data: JSON.stringify(data.field),
+                dataType: "json",
+                contentType:"application/json;charset=utf-8",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        var index = layer.alert("添加成功",{
+                        }, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+                            // 刷新父页面
+                            window.parent.location.reload();
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                       /* miniTab.deleteCurrentByIframe();*/
+                        // window.location.href = "/menu/listView";
+                    }else {
+                        layer.msg("添加失败,原因为" + result.data.errMsg);
+                    }
+                }
+            });
+            return false;
+        });
+
+
+
+        function getMenu(level){
+            // 查询上级菜单
+            $.ajax({
+                url: "/menu/superLevelMenu",
+                type: 'get',
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                data: {
+                    level: level
+                },
+                success:function(res){
+                    var data = res.data;
+                    console.log(data);
+                    if(res.status == "success"){
+                        var optionData = "";
+                        for(var i = 0;i < data.length; i++){
+                            optionData += "<option value=\"" + data[i].id+"\">" + data[i].title+"</option>";
+                        }
+                        $("#parentId").append(optionData);
+                        form.render('select');//select是固定写法 不是选择器
+                    }else{
+                        layer.msg(res.message);
+                    }
+                }
+            });
+        }
+
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{::link})">
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 加载字体文件样式 -->
+    <link rel="stylesheet" href="/css/admin-web/eleTree/eleTree.css">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+
+                        <!--<form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                            <div class="layui-form layuimini-form">
+                                <div class="ele1"></div>
+
+
+                            </div>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                </div>
+                            </div>
+                        </form>-->
+
+                        <div class="layui-form layuimini-form">
+                            <div class="menuTree"></div>
+
+
+                        </div>
+
+                        <div class="layui-form-item">
+                            <div class="layui-input-block">
+                                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                <button type="reset" class="layui-btn layui-btn-primary" id="resetAllMenu">重置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+<script type="text/javascript">
+    layui.config({
+        base: "/layuimini/js/lay-module/"
+    }).use(['jquery', 'form', 'eleTree'], function(){
+        var $ = layui.jquery;
+        var form = layui.form;
+        var eleTree = layui.eleTree;
+        var roleId = getUrlParam("roleId");
+        var el = eleTree.render({
+            elem: '.menuTree',
+            url: '/menu/treeList',
+            type:'get',
+            // 自定义返回数据格式
+            response: {
+                statusName: 'status' //规定数据状态的字段名称，默认：code
+                ,statusCode: 'success' //规定成功的状态码，默认：0
+                ,countName: 'total' //规定数据总数的字段名称，默认：count
+                /*,msgName: 'hint' //规定状态信息的字段名称，默认：msg
+                ,dataName: 'rows' //规定数据列表的字段名称，默认：data*/
+            },
+            // 是否高亮当前选中节点
+            highlightCurrent: true,
+            // 是否默认展开所有节点
+            defaultExpandAll: true,
+            // autoExpandParent: true,
+            showCheckbox: true,
+            // 在父子关联的情况下，初始数据是否只是子节点影响父节点，即父节点选中，子节点全部没有选中或部分选中，则让父节点也没有选中或者半选，默认false，即父子结点互相影响
+            isDefaultChangePstatus: false,
+            // defaultCheckedKeys: [48, 50, 49],
+            // 回调获取角色有那些菜单
+            done: function (result) {
+                let arr = [];
+                $.ajax({
+                    url: "/role/listMenu/" + roleId,
+                    type: "GET",
+                    dataType:'json',
+                    success: function (data) {
+                        let parentSet = new Set();
+                        let idSet = new Set();
+                        for (let i = 0; i < data.data.length; i++) {
+                            parentSet.add(data.data[i].parentId);
+                            idSet.add(data.data[i].id);
+                        }
+                        for (let item of idSet) {
+                            console.log(item);
+                            // 父节点菜单中不包含此节点则说明这是最底层节点，将其选中父节点会默认全选中
+                            if (!parentSet.has(item)) {
+                                arr.push(item);
+                            }
+                        }
+                        console.log(arr);
+                        // 选中角色已有菜单中最底层节点菜单
+                        setTimeout(() =>{
+                            el.setChecked(arr, true);
+                            }, 100);
+                    }
+                });
+            }
+        });
+
+
+
+        //重置
+        layui.$('#resetAllMenu').on('click', function(){
+            el.unCheckNodes();
+        });
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+                                                // 半选中的节点也提交
+            let checked = el.getChecked(false, true);
+            let menuIds = new Set();
+            for (let i = 0; i < checked.length; i++) {
+                menuIds.add(checked[i].id);
+            }
+            console.log(menuIds);
+            $.ajax({
+                type: "POST",
+                url: "/role/allocMenu",
+                data: {
+                    roleId: roleId,
+                    menuIds: Array.from(menuIds).toString()
+                },
+                dataType: "json",
+                contentType:"application/x-www-form-urlencoded",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        var index = layer.alert("分配成功",{
+                        }, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+                            // 刷新父页面
+                            window.parent.location.reload();
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    }else {
+                        layer.msg("分配失败,原因为" + result.data.errMsg);
+                    }
+                },
+            });
+            return false;
+        });
+    });
+
+</script>
+</body>
+</html>

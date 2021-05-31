@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>添加用户</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        #stepForm{
+            // 设置容器宽度
+            width: '100%',
+            stepWidth: '750px',
+            height: '500px',
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+
+                        <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                            <div class="layui-form layuimini-form">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">用户名称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="username" lay-verify="required" lay-reqtext="用户名称" placeholder="请填写用户名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">用户密码</label>
+                                    <div class="layui-input-block">
+                                        <input type="password" name="password" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">用户昵称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="nickName" lay-verify="required" lay-reqtext="用户昵称" placeholder="请填写用户昵称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">备注信息:</label>
+                                    <div class="layui-input-block">
+                                        <textarea name="note" placeholder="备注信息" value="" class="layui-textarea"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">是否启用</label>
+                                    <div class="layui-input-block">
+                                        <input type="radio" name="status" value="1" title="是" checked=""><div class="layui-unselect layui-form-radio"><i class="layui-anim layui-icon"></i><div>是</div></div>
+                                        <input type="radio" name="status" value="0" title="否"><div class="layui-unselect layui-form-radio layui-form-radioed"><i class="layui-anim layui-icon layui-anim-scaleSpring"></i><div>否</div></div>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script>
+    layui.use([ 'form', 'miniTab'], function () {
+        var $ = layui.$,
+            form = layui.form;
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            console.log(JSON.stringify(data.field));
+            $.ajax({
+                type: "POST",
+                url: "/admin/register",
+                data: JSON.stringify(data.field),
+                dataType: "json",
+                contentType:"application/json;charset=utf-8",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        var index = layer.alert("添加成功",{
+                        }, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+                            // 刷新父页面
+                            window.parent.location.reload();
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    }else {
+                        layer.msg("添加失败,原因为" + result.data.errMsg);
+                    }
+                }
+            });
+
+            return false;
+        });
+    })
+</script>
+</body>
+</html>

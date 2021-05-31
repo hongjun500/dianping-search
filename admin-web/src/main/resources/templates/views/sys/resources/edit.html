@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>添加菜单</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        #stepForm{
+            // 设置容器宽度
+            width: '100%',
+            stepWidth: '750px',
+            height: '500px',
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+
+                        <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                            <div class="layui-form layuimini-form">
+                                <input type="hidden" name="id" th:value="${sysResourceDO.getId()}"/>
+
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">资源分类:</label>
+                                    <div class="layui-input-block">
+                                        <select lay-filter="categoryId" lay-verify="required" name="categoryId" id="categoryId">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">资源名称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="name" th:value="${sysResourceDO.getName()}" lay-verify="required" lay-reqtext="资源名称不能为空" placeholder="请填写资源名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">资源路径:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="url" th:value="${sysResourceDO.getUrl()}" lay-verify="required" lay-reqtext="资源路径不能为空" placeholder="请填写资源路径" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">备注信息:</label>
+                                    <div class="layui-input-block">
+                                        <textarea name="note" placeholder="备注信息" th:text="${sysResourceDO.getDescription()}" value="" class="layui-textarea"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script>
+    layui.use([ 'form', 'miniTab'], function () {
+        var $ = layui.$,
+            form = layui.form;
+
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            console.log(JSON.stringify(data.field));
+            $.ajax({
+                type: "POST",
+                url: "/resource/update/" + data.field.id,
+                data: JSON.stringify(data.field),
+                dataType: "json",
+                contentType:"application/json;charset=utf-8",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        var index = layer.alert("修改成功",{
+                        }, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+                            // 刷新父页面
+                            window.parent.location.reload();
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    }else {
+                        layer.msg("修改失败,原因为" + result.data.errMsg);
+                    }
+                }
+            });
+            return false;
+        });
+
+        $(document).ready(function () {
+            let categoryId = [[${sysResourceDO.categoryId}]];
+            getCategory(categoryId);
+        });
+
+        function  getCategory(categoryId) {
+            // 查询所有分类
+            $.ajax({
+                url: "/resourceCategory/listAll",
+                type: 'get',
+                contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                success:function(res){
+                    const data = res.data;
+                    if(res.status == "success"){
+                        var optionData = "";
+                        for(var i = 0;i < data.length; i++){
+                            optionData += "<option value=\"" + data[i].id+"\">" + data[i].name+"</option>";
+                        }
+                        let selectContainer = $("#categoryId");
+                        selectContainer.append(optionData);
+                        //编辑页面时，对下拉框数据回显
+                        selectContainer.val(categoryId);
+                        form.render('select');//select是固定写法 不是选择器
+                    }else{
+                        layer.msg(res.message);
+                    }
+                }
+            });
+        }
+
+    })
+</script>
+</body>
+</html>
