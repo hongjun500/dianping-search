@@ -43,7 +43,7 @@ spring:
     # 使用jackson解析数据
     converters:
       preferred-json-mapper: jackson
-    static-path-pattern: /**
+    static-path-pattern: /static/**
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     #    东八区
@@ -116,6 +116,7 @@ secure:
       - /swagger/**
       - /**/v2/api-docs
       - /**/*.js
+      - /**/*.html
       - /**/*.css
       - /**/*.png
       - /**/*.jpg
@@ -132,7 +133,6 @@ secure:
       - /postTopic/listPostTopic
       - /**.json
       - /product/**
-      - /app/**
       - /shopOrder/**
 
 # 自定义规范redis业务类型key
