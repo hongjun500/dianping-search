@@ -1,6 +1,6 @@
 package com.hongjun.common.validator;
 
-import org.apache.commons.lang3.StringUtils;
+import cn.hutool.core.util.StrUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +43,6 @@ public class ValidationResult {
      * @return errorMsg
      */
     public String getErrorMsg(){
-        return StringUtils.join(errorMsgMap.values().toArray(),",");
+        return StrUtil.join(errorMsgMap.values().toString(),",");
     }
 }
