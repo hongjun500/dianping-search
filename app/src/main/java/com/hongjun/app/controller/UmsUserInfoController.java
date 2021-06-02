@@ -35,7 +35,7 @@ import java.util.Map;
  * Created with 2019.3.2.IntelliJ IDEA
  * Description: 会员信息控制器
  */
-@RequestMapping(value = "/app/ums")
+@RequestMapping(value = "/ums")
 @RestController
 @Api(tags = "app用户相关接口")
 public class UmsUserInfoController extends BaseController {
@@ -95,11 +95,6 @@ public class UmsUserInfoController extends BaseController {
     @ApiOperation("会员退出登录")
     @PostMapping(value = "/logout")
     public CommonReturnType<Object> logout(Principal principal, HttpServletResponse response) throws BusinessException {
-        // 清空Cookie
-        Cookie cookie = new Cookie(tokenHeader, null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/app");
-        response.addCookie(cookie);
         // 删除缓存
         if(principal==null){
             return CommonReturnType.create(null);
@@ -129,9 +124,13 @@ public class UmsUserInfoController extends BaseController {
     @ApiImplicitParam(name = "name",value = "当前用户相关信息，不用传参")
     public CommonReturnType info(Principal principal) throws BusinessException {
         if (principal == null) {
-            throw new BusinessException(EnumBusinessError.USER_NOT_LOGIN);
+            return CommonReturnType.create(null);
+            // throw new BusinessException(EnumBusinessError.USER_NOT_LOGIN);
         }
         UmsUserInfoDO member = umsUserInfoService.getCurrentMember();
+        if (member == null){
+            return CommonReturnType.create(null);
+        }
         return CommonReturnType.create(member);
     }
 

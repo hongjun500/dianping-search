@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>商户列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <div id="tableReloadContainer" class="layui-form">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">关键字</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="name" id="name" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+
+
+                        <div class="layui-inline">
+                            <!--<button type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>-->
+                            <button class="layui-btn" data-type="reload">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarContainer">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <!--<button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>-->
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="opStatus">
+            <input type="checkbox" name="status" value="{{d.id}}" lay-skin="switch" lay-text="是|否" lay-filter="statusFilter" {{ d.disabledFlag == 1 ? 'checked' : '' }}>
+        </script>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script type="text/javascript" th:inline="none">
+    layui.use(['form', 'table', 'util'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            util = layui.util,
+            layer = layui.layer,
+            table = layui.table;
+        table.render({
+            elem: '#currentTableId',
+            url: '/seller/list',
+            toolbar: '#toolbarContainer',
+            /*不开启右侧工具*/
+            defaultToolbar: false,
+           /* defaultToolbar: ['filter', 'print', 'exports', {
+                title: '提示' //标题
+                ,layEvent: 'LAYTABLE_TIPS' //事件名，用于 toolbar 事件中使用
+                ,icon: 'layui-icon-tips' //图标类名
+            }],*/
+            // 自定义返回数据格式
+            response: {
+                statusName: 'status' //规定数据状态的字段名称，默认：code
+                ,statusCode: 'success' //规定成功的状态码，默认：0
+                ,countName: 'total' //规定数据总数的字段名称，默认：count
+            },
+            cols: [[
+                // {type: "checkbox", width: 50},
+                {field: 'id', width: 80, title: 'ID', sort: true},
+                {field: 'name', width: 150, title: '商户名'},
+                // {field: 'email', width: 150, title: '邮箱'},
+                {field: 'remarkScore', width: 150, title: '评分'},
+                {field: 'disabledFlag', width: 150, title: '启用状态', templet: '#opStatus'},
+                {field: 'updatedAt', width: 190, title: '修改时间', minWidth: 150, templet: dateForMatUpdate},
+                {field: 'createdAt', width: 190, title: '创建时间', minWidth: 150, templet: dateForMat},
+                {title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center"}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 10,
+            page: true,
+            // skin: 'line'
+        });
+
+       function dateForMat(row){
+           return util.toDateString(row.createdAt,'yyyy-MM-dd HH:mm:ss');
+       }
+        function dateForMatUpdate(row){
+            return util.toDateString(row.updatedAt,'yyyy-MM-dd HH:mm:ss');
+        }
+
+        // 搜索点击事件监听
+        $('#tableReloadContainer .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+        // 表格数据重载
+        var active = {
+            reload: function(){
+                // 关键字
+                var name = $('#name');
+                //执行重载
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    ,where: {
+                        name: name.val()
+                    }
+                }, 'data');
+            }
+        };
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                var index = layer.open({
+                    title: '添加商户',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '/seller/addView',
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = table.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+                layer.alert(JSON.stringify(data));
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+        //监听启用操作
+        form.on('switch(statusFilter)', function(obj){
+            let id = this.value;
+            let status = obj.elem.checked === true?1:0;
+            $.ajax({
+                type: "POST",
+                url: "/seller/update/" + id,
+                data: {
+                    id: id,
+                    status: status
+                },
+                dataType: "json",
+                // contentType:"application/json;charset=utf-8",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        layer.msg("修改成功");
+                    }else {
+                        layer.msg("修改失败,原因为" + result.data.errMsg);
+                    }
+                }
+            });
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+
+                var index = layer.open({
+                    title: '编辑用户',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '/admin/editView/' + obj.data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            } else if (obj.event === 'delete') {
+                console.log(obj);
+                layer.confirm('确认删除？', function (index) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/admin/delete/" +  obj.data.id,
+                        contentType: "application/x-www-form-urlencoded",
+                        dataType: "JSON",
+                        success: function (data) {
+                            if (data.status == "success"){
+                                layer.msg("删除成功");
+                                obj.del();
+                                layer.close(index);
+                            }else {
+                                layer.msg("删除失败,原因为" + data.data.errMsg);
+                            }
+                        }
+
+                    });
+                });
+            } else if (obj.event === 'allotMenu') {
+                var index = layer.open({
+                    title: '分配角色',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['800px', '300px'],
+                    content: '/admin/allotRoleView?adminId=' + obj.data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            }
+        });
+
+    });
+</script>
+
+</body>
+</html>

@@ -5,6 +5,7 @@ import com.hongjun.app.config.security.AppJwtAuthenticationTokenFilter;
 import com.hongjun.app.service.UmsUserInfoService;
 import com.hongjun.common.error.BusinessException;
 import com.hongjun.config.BaseSecurityConfig;
+import com.hongjun.jwt.JwtAuthenticationTokenFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

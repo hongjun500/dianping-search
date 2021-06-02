@@ -6,7 +6,7 @@ dianping
 ├──data-model-mbg -- MyBatisGenerator生成的数据库操作代码及其DO类
 ├──security -- SpringSecurity封装公用模块(无需改动)
 ├──admin-web -- 后台管理系统接口,基于layui的layuimini前端UI框架操作界面
-├──app-server -- app接口
+├──app-server -- app/H5接口
 ```
 ### 技术选型
 

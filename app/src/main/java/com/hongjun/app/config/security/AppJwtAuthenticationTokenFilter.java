@@ -47,7 +47,7 @@ public class AppJwtAuthenticationTokenFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
         String authHeader = request.getHeader(this.tokenHeader);
-        // 从cookie中获取token(用于前后端未分离时页面跳转需要携带授权认证信息)
+       /* // 从cookie中获取token(用于前后端未分离时页面跳转需要携带授权认证信息)
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -57,7 +57,7 @@ public class AppJwtAuthenticationTokenFilter extends OncePerRequestFilter {
                     break;
                 }
             }
-        }
+        }*/
         if (authHeader != null && authHeader.startsWith(this.tokenHead)) {
             // The part after "Bearer "
             String authToken = authHeader.substring(this.tokenHead.length());
