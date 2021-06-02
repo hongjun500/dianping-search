@@ -43,7 +43,7 @@ spring:
     # 使用jackson解析数据
     converters:
       preferred-json-mapper: jackson
-    static-path-pattern: /static/**
+    static-path-pattern: /**
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     #    东八区
