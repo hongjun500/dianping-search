@@ -1,4 +1,4 @@
-### 基于ElasticSearch的搜索点评工程
+### 基于MySQL的搜索点评工程
 ### 组织结构
 ``` lua
 dianping
