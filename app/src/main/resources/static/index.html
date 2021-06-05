@@ -201,6 +201,9 @@
     <div id="firstHeader" class="titlebar activebar">
         <div class="topbar">
             <div class="citylist fl" id="citylist" tapmode="">上海<img src="./image/title_home_arrow_down_normal.png" alt="" class="citylistarrow"></div>
+            <input class="search firstSearch" type="text" placeHolder="输入门店名搜索" name="keyword" id="keyword" style="width:250px;outline-width:0px;"/>
+            <input type="hidden" id="longitude" value="" name="longitude"/>
+            <input type="hidden" id="latitude" value="" name="latitude"/>
             <span id="rightTitle" style="font-size:16px;color:white;float:right;padding-top:12px;">登录</span>
         </div>
     </div>
@@ -447,7 +450,7 @@
             if(g_orderby == null){
                 orderby = "";
             }else{
-                orderby = "&orderby="+g_orderby;
+                orderby = "&orderBy="+g_orderby;
             }
 
             if(g_categoryFilter == null){
@@ -461,9 +464,10 @@
                 tagFilter = "&tags="+g_tagFilter;
             }
             $.ajax({
-                type : "POST",
+                type : "GET",
                 contentType : "application/json; charset=utf-8",
                 url : "/shop/search?keyword="+keyword+"&longitude="+longitude+"&latitude="+latitude+orderby+categoryFilter+tagFilter,
+                headers: ajaxHeaders,
                 success : function(data){
                     if(data.status == 'success'){
                         $("#guess").hide();
@@ -555,6 +559,7 @@
         }
 
         $('#keyword').on('keypress',function(event){
+            // 敲击了回车键
             if(event.keyCode == 13) {
                 searchMethod();
             }

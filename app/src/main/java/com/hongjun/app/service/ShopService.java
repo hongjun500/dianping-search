@@ -4,6 +4,7 @@ import com.hongjun.app.service.model.ShopModel;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author hongjun500
@@ -14,4 +15,6 @@ import java.util.List;
  */
 public interface ShopService {
     List<ShopModel> recommend(BigDecimal longitude, BigDecimal latitude);
+    List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderBy, Integer categoryId, String tags);
+    List<Map<String, Object>> searchByGroupTags(String keyword, Integer categoryId, String tags);
 }

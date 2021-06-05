@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author hongjun500
@@ -54,5 +56,33 @@ public class ShopServiceImpl implements ShopService {
             });
         });
         return shopModelList;
+    }
+
+    @Override
+    public List<ShopModel> search(BigDecimal longitude, BigDecimal latitude, String keyword, Integer orderBy, Integer categoryId, String tags){
+        List<ShopModel> shopModelList = shopDao.search(longitude, latitude, keyword, orderBy, categoryId, tags);
+        if (shopModelList.isEmpty()){
+            return new ArrayList<>();
+        }
+        List<SellerDO> sellerDOList = sellerDOMapper.selectByExample(new SellerDOExample());
+        List<CategoryDO> categoryDOList = categoryDOMapper.selectByExample(new CategoryDOExample());
+        shopModelList.forEach(shopModel -> {
+            sellerDOList.forEach(sellerDO -> {
+                if (sellerDO.getId().equals(shopModel.getSellerId())){
+                    shopModel.setSellerDO(sellerDO);
+                }
+            });
+            categoryDOList.forEach(categoryDO -> {
+                if (categoryDO.getId().equals(shopModel.getCategoryId())){
+                    shopModel.setCategoryDO(categoryDO);
+                }
+            });
+        });
+        return shopModelList;
+    }
+
+    @Override
+    public List<Map<String, Object>> searchByGroupTags(String keyword, Integer categoryId, String tags) {
+        return shopDao.selectGroupByTags(keyword, categoryId, tags);
     }
 }
