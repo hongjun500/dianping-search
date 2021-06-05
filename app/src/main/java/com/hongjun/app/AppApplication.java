@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan(value = "com.hongjun.mapper")
+@MapperScan(value = {"com.hongjun.mapper", "com.hongjun.app.dao"})
 public class AppApplication {
 
     public static void main(String[] args) {
