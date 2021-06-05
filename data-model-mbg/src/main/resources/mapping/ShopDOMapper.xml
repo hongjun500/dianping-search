@@ -125,7 +125,7 @@
       #{address,jdbcType=VARCHAR}, #{sellerId,jdbcType=INTEGER}, #{iconUrl,jdbcType=VARCHAR}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.hongjun.dataobject.ShopDO">
+  <insert id="insertSelective" parameterType="com.hongjun.dataobject.ShopDO" useGeneratedKeys="true" keyProperty="id">
     insert into shop
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:include="header :: common_header(~{},~{})">
+    <meta charset="utf-8">
+    <title>添加品类</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        #stepForm{
+            // 设置容器宽度
+            width: '100%',
+            stepWidth: '750px',
+            height: '500px',
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <div class="layui-fluid">
+            <div class="layui-card">
+                <div class="layui-card-body" style="padding-top: 40px;">
+                    <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+
+                        <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                            <div class="layui-form layuimini-form">
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">门店iconUrl:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="iconUrl" lay-verify="required" lay-reqtext="门店iconUrl" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">门店名称:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="name" lay-verify="required" lay-reqtext="品类名称" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">人均价格:</label>
+                                    <div class="layui-input-block">
+                                        <input type="number" name="pricePerMan" lay-verify="required" lay-reqtext="人均价格" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">地址:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="address" id="address" lay-verify="required" lay-reqtext="地址" placeholder="请填写品类图片url" class="layui-input"  />
+                                        <button type="button" id="analyze"  class="layui-btn layui-btn-danger" style="margin-left:12px;">解析经纬度</button>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">经度:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="longitude" id="longitude" lay-verify="required" readonly lay-reqtext="经度" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">纬度:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="latitude" id="latitude" lay-verify="required" readonly lay-reqtext="纬度" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">品类ID:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="categoryId" id="categoryId" lay-verify="required" lay-reqtext="人均价格" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">标签:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="tags" lay-verify="required" lay-reqtext="标签" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label required">商家ID:</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="sellerId" id="sellerId" lay-verify="required" lay-reqtext="商家ID" placeholder="请填写品类名称" class="layui-input"  />
+                                    </div>
+                                </div>
+
+
+                                <div class="layui-form-item">
+                                    <div class="layui-input-block">
+                                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">提交</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!--公用JS-->
+<footer th:include="footer :: common_footer"></footer>
+<!--公用JS---END-->
+
+<script>
+    layui.use([ 'form', 'miniTab'], function () {
+        var $ = layui.$,
+            form = layui.form;
+        $(document).ready(function() {
+            getFloat = function (number, n) {
+                n = n ? parseInt(n) : 0;
+                if (n <= 0) return Math.round(number);
+                number = Math.round(number * Math.pow(10, n)) / Math.pow(10, n);
+                return number;
+            };
+
+            $("#analyze").on("click",function(){
+                $.ajax({
+                    type : "POST",
+                    url : "http://api.map.baidu.com/geocoder/v2/",
+                    data:"address="+encodeURIComponent($("#address").val())+"&output=json&ak=9wV8VNAp1qm8FLQzVZ70dcIS6HNwTXBk",
+                    dataType:"jsonp",
+                    jsonp:"callback",
+                    jsonpCallback:"showLocation",
+                    success : function(data){
+                        if(data.status == 0){
+                            alert("地址解析成功");
+                            $("#latitude").val(getFloat(data.result.location.lat,6));
+                            $("#longitude").val(getFloat(data.result.location.lng,6));
+                        }else{
+                            alert("获取百度地图失败，原因为"+data);
+                        }
+                    },
+                    error : function(data){
+                        alert("获取百度地图失败，原因为"+data.responseText);
+                    }
+                });
+                return false;
+            });
+
+        });
+        //监听提交
+        form.on('submit(saveBtn)', function (data) {
+            console.log(JSON.stringify(data.field));
+            $.ajax({
+                type: "POST",
+                url: "/shop/create",
+                data: JSON.stringify(data.field),
+                dataType: "json",
+                contentType:"application/json;charset=utf-8",
+                success: function (result) {
+                    console.log(result);
+                    if (result.status == "success"){
+                        var index = layer.alert("添加成功",{
+                        }, function () {
+                            // 关闭弹出层
+                            layer.close(index);
+                            // 刷新父页面
+                            window.parent.location.reload();
+                            var iframeIndex = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(iframeIndex);
+                        });
+                    }else {
+                        layer.msg("添加失败,原因为" + result.data.errMsg);
+                    }
+                }
+            });
+
+            return false;
+        });
+    })
+</script>
+</body>
+</html>
